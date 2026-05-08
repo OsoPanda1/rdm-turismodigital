@@ -1,3 +1,0 @@
-export default function MapPage() {
-  return <div className="p-6">Mapa territorial en construcción.</div>;
-}
