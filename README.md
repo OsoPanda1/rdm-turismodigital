@@ -24,7 +24,7 @@ Plataforma civilizatoria digital para Real del Monte: identidad, turismo intelig
 - App Next.js moderna con App Router y segmentación por rutas funcionales.
 - Integración Supabase Auth + Prisma + Stripe + endpoints de IA.
 - Nuevas rutas de geolocalización y Digital Twin ya operativas (`places`, `telemetry`, `realito`).
-- Cursor pagination incorporada para listas dinámicas (`/api/github/repos`).
+- Paginación real en `/repositorio` con lectura profunda de GitHub en mínimo 3 páginas consecutivas y fusión por federación TAMV/RDM.
 
 ### Debilidades detectadas
 - **Inconsistencia de fuentes de verdad** entre Supabase Auth y Prisma User (identidad híbrida no completamente orquestada).
@@ -40,7 +40,7 @@ Plataforma civilizatoria digital para Real del Monte: identidad, turismo intelig
 ### Sesgos/inconsistencias funcionales corregidas recientemente
 - Redirecciones de autenticación frágiles (signup/login/callback) reforzadas.
 - Mensajería opaca en login corregida para casos de correo no confirmado.
-- Paginación estructurada para absorción incremental de repos GitHub.
+- Paginación estructurada para absorción incremental de repos GitHub, con análisis de lenguajes, forks, archivados, federaciones y último push.
 
 ---
 
@@ -78,8 +78,10 @@ Plataforma civilizatoria digital para Real del Monte: identidad, turismo intelig
 - `POST /api/ai/ask`
 
 ### Absorción GitHub (OsoPanda1)
-- `GET /api/github/repos?cursor=<opaque>&limit=20`
-- Respuesta: `{ items, nextCursor }`
+- `POST /functions/v1/github-sync`
+- Payload opcional: `{ "minPages": 3, "maxPages": 10 }`
+- Respuesta: `{ synced, analyzed, pages_scanned, min_pages_requested, repositories, analysis }`
+- La pantalla `/repositorio` pagina 12 nodos núcleo por vista y ejecuta clasificación/fusión por federación.
 
 ---
 

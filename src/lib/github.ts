@@ -32,7 +32,25 @@ export type GHUser = {
   created_at: string
 }
 
+export type RepoClassification = {
+  federation: string
+  classification: string
+}
+
+export type RepoAnalysis = {
+  total: number
+  core: number
+  forks: number
+  archived: number
+  languages: Record<string, number>
+  federations: Record<string, number>
+  latestPush: string | null
+}
+
 export const GH_USER = "OsoPanda1"
+export const GITHUB_REPOS_PER_PAGE = 100
+export const GITHUB_SYNC_MIN_PAGES = 3
+export const GITHUB_SYNC_MAX_PAGES = 10
 
 export const CORE_REPO_WHITELIST = [
   "rdm-digital-nodo-cero",
@@ -80,22 +98,40 @@ export async function fetchGitHubUser(): Promise<GHUser | null> {
   }
 }
 
-export async function fetchGitHubRepos(): Promise<GHRepo[]> {
-  try {
-    const res = await fetch(`https://api.github.com/users/${GH_USER}/repos?per_page=100&sort=pushed`, {
-      headers: { Accept: "application/vnd.github+json" },
-    })
-    if (!res.ok) return []
-    return (await res.json()) as GHRepo[]
-  } catch {
-    return []
+export async function fetchGitHubRepos(options: { maxPages?: number; minPages?: number } = {}): Promise<GHRepo[]> {
+  const maxPages = Math.max(1, options.maxPages ?? GITHUB_SYNC_MAX_PAGES)
+  const minPages = Math.max(1, options.minPages ?? GITHUB_SYNC_MIN_PAGES)
+  const repos: GHRepo[] = []
+  const seen = new Set<number>()
+
+  for (let page = 1; page <= maxPages; page += 1) {
+    try {
+      const url = new URL(`https://api.github.com/users/${GH_USER}/repos`)
+      url.searchParams.set("per_page", String(GITHUB_REPOS_PER_PAGE))
+      url.searchParams.set("sort", "pushed")
+      url.searchParams.set("page", String(page))
+
+      const res = await fetch(url.toString(), { headers: { Accept: "application/vnd.github+json" } })
+      if (!res.ok) break
+
+      const batch = (await res.json()) as GHRepo[]
+      batch.forEach((repo) => {
+        if (!seen.has(repo.id)) {
+          seen.add(repo.id)
+          repos.push(repo)
+        }
+      })
+
+      if (page >= minPages && batch.length < GITHUB_REPOS_PER_PAGE) break
+    } catch {
+      break
+    }
   }
+
+  return repos
 }
 
-export function classifyRepo(repo: Pick<GHRepo, "name" | "description" | "topics">): {
-  federation: string
-  classification: string
-} {
+export function classifyRepo(repo: Pick<GHRepo, "name" | "description" | "topics">): RepoClassification {
   const text = `${repo.name} ${repo.description ?? ""} ${(repo.topics ?? []).join(" ")}`.toLowerCase()
   if (/kernel|isabella|fann|eros|sentinel|ai\b|llm|model|quantum|orchestrator|nexus/.test(text))
     return { federation: "tecnologica", classification: "infra-cognitiva" }
@@ -113,4 +149,24 @@ export function classifyRepo(repo: Pick<GHRepo, "name" | "description" | "topics
   if (/nodo|rdm|territorio|twin|real-del-monte|smart-city/.test(text))
     return { federation: "gubernamental", classification: "canónico" }
   return { federation: "tecnologica", classification: "general" }
+}
+
+export function analyzeRepositories(repos: GHRepo[]): RepoAnalysis {
+  return repos.reduce<RepoAnalysis>(
+    (acc, repo) => {
+      const federation = classifyRepo(repo).federation
+      const language = repo.language ?? "Sin lenguaje"
+      acc.total += 1
+      acc.core += isCoreRepo(repo.name) && !repo.fork ? 1 : 0
+      acc.forks += repo.fork ? 1 : 0
+      acc.archived += repo.archived ? 1 : 0
+      acc.languages[language] = (acc.languages[language] ?? 0) + 1
+      acc.federations[federation] = (acc.federations[federation] ?? 0) + 1
+      if (!acc.latestPush || new Date(repo.pushed_at).getTime() > new Date(acc.latestPush).getTime()) {
+        acc.latestPush = repo.pushed_at
+      }
+      return acc
+    },
+    { total: 0, core: 0, forks: 0, archived: 0, languages: {}, federations: {}, latestPush: null },
+  )
 }

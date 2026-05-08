@@ -1,13 +1,35 @@
+import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { classifyRepo, fetchGitHubRepos, fetchGitHubUser, isCoreRepo } from "@/lib/github"
+import {
+  analyzeRepositories,
+  classifyRepo,
+  fetchGitHubRepos,
+  fetchGitHubUser,
+  GITHUB_SYNC_MIN_PAGES,
+  isCoreRepo,
+  type GHRepo,
+  type RepoAnalysis,
+} from "@/lib/github"
 
-type SyncResult = { synced?: number; repositories?: unknown[]; error?: string }
+const PAGE_SIZE = 12
+
+type EnrichedRepo = GHRepo & ReturnType<typeof classifyRepo> & { is_core: boolean }
+type SyncResult = {
+  synced?: number
+  analyzed?: number
+  pages_scanned?: number
+  min_pages_requested?: number
+  repositories?: unknown[]
+  analysis?: RepoAnalysis
+  error?: string
+}
 
 export default function RepositorioPage() {
+  const [page, setPage] = useState(1)
   const user = useQuery({ queryKey: ["github-user"], queryFn: fetchGitHubUser })
-  const repos = useQuery({ queryKey: ["github-repos"], queryFn: fetchGitHubRepos })
+  const repos = useQuery({ queryKey: ["github-repos", "deep", GITHUB_SYNC_MIN_PAGES], queryFn: () => fetchGitHubRepos({ minPages: GITHUB_SYNC_MIN_PAGES }) })
   const sync = useQuery<SyncResult>({
-    queryKey: ["github-sync-edge"],
+    queryKey: ["github-sync-edge", GITHUB_SYNC_MIN_PAGES],
     queryFn: async () => {
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/github-sync`, {
         method: "POST",
@@ -15,19 +37,27 @@ export default function RepositorioPage() {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ source: "repositorio-page" }),
+        body: JSON.stringify({ source: "repositorio-page", minPages: GITHUB_SYNC_MIN_PAGES }),
       })
       return res.json()
     },
     retry: false,
   })
 
-  const enriched = (repos.data ?? [])
-    .filter((r) => !r.fork && isCoreRepo(r.name))
-    .map((r) => ({ ...r, ...classifyRepo(r), is_core: true }))
-    .sort((a, b) => new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime())
+  const enriched = useMemo(
+    () =>
+      (repos.data ?? [])
+        .map((r) => ({ ...r, ...classifyRepo(r), is_core: isCoreRepo(r.name) && !r.fork }))
+        .filter((r) => r.is_core)
+        .sort((a, b) => new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()),
+    [repos.data],
+  )
 
-  const byFed = enriched.reduce<Record<string, typeof enriched>>((acc, repo) => {
+  const analysis = useMemo(() => sync.data?.analysis ?? analyzeRepositories(repos.data ?? []), [repos.data, sync.data?.analysis])
+  const totalPages = Math.max(1, Math.ceil(enriched.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedRepos = enriched.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const byFed = paginatedRepos.reduce<Record<string, EnrichedRepo[]>>((acc, repo) => {
     acc[repo.federation] = acc[repo.federation] ?? []
     acc[repo.federation].push(repo)
     return acc
@@ -42,25 +72,41 @@ export default function RepositorioPage() {
             GitHub <span className="text-accent">OsoPanda1</span> como database federada
           </h1>
           <p className="text-muted-foreground text-lg max-w-3xl leading-relaxed mb-8">
-            Interconectividad activa con whitelist EOCT: solo repos núcleo TAMV/RDM se absorben como metadatos,
-            excluyendo malware, userbots, RAT y scrapers no consentidos.
+            Interconectividad activa con análisis profundo en al menos {GITHUB_SYNC_MIN_PAGES} páginas consecutivas de GitHub,
+            fusión por federación TAMV/RDM y cache operativo Supabase sin absorber forks ni repos fuera del núcleo permitido.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/40 border border-border/40">
-            <Stat label="GitHub públicos" value={user.data?.public_repos ?? enriched.length} />
-            <Stat label="Núcleo whitelist" value={enriched.length} />
-            <Stat label="Federaciones" value={Object.keys(byFed).length} />
+            <Stat label="GitHub analizados" value={analysis.total || user.data?.public_repos || enriched.length} />
+            <Stat label="Núcleo fusionado" value={analysis.core || enriched.length} />
+            <Stat label="Federaciones" value={Object.keys(analysis.federations).length} />
             <Stat label="Sync Edge" value={sync.data?.synced ?? "pendiente"} />
           </div>
           {sync.data?.error ? <p className="mt-4 text-sm text-amber-400">Edge sync: {sync.data.error}</p> : null}
+          <div className="mt-6 grid md:grid-cols-3 gap-px bg-border/40 border border-border/40">
+            <Stat label="Páginas escaneadas" value={sync.data?.pages_scanned ?? GITHUB_SYNC_MIN_PAGES} />
+            <Stat label="Forks excluidos" value={analysis.forks} />
+            <Stat label="Último push" value={analysis.latestPush ? new Date(analysis.latestPush).toLocaleDateString("es-MX") : "—"} />
+          </div>
         </div>
       </section>
 
       <section className="max-w-6xl mx-auto px-6 py-16">
-        {Object.entries(byFed).map(([fed, list]) => (
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 border-b border-border/40 pb-4">
+          <div>
+            <h2 className="font-serif text-2xl">Paginación operativa de nodos núcleo</h2>
+            <p className="text-sm text-muted-foreground">Página {currentPage} de {totalPages} · {enriched.length} repos fusionables</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="border border-border/60 px-4 py-2 text-sm disabled:opacity-40" disabled={currentPage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Anterior</button>
+            <button className="border border-border/60 px-4 py-2 text-sm disabled:opacity-40" disabled={currentPage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Siguiente</button>
+          </div>
+        </div>
+
+        {(Object.entries(byFed) as [string, EnrichedRepo[]][]).map(([fed, list]) => (
           <div key={fed} className="mb-16">
             <div className="flex items-baseline justify-between mb-6 border-b border-border/40 pb-3">
               <h2 className="font-serif text-2xl">Federación {fed}</h2>
-              <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{list.length} nodos</span>
+              <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{list.length} nodos en página</span>
             </div>
             <div className="grid md:grid-cols-2 gap-px bg-border/40 border border-border/40">
               {list.map((r) => (
