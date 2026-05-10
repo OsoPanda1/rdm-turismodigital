@@ -2,8 +2,21 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4"
 import { corsHeaders, json } from "../_shared/cors.ts"
 import { GITHUB_SYNC_MAX_PAGES, GITHUB_SYNC_MIN_PAGES, analyzeRepositories, classifyRepo, fetchGitHubRepos, isCoreRepo } from "../_shared/github.ts"
 
+async function requireAdmin(req: Request) {
+  const auth = req.headers.get("Authorization") ?? ""
+  if (!auth.startsWith("Bearer ")) return null
+  const supa = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, { global: { headers: { Authorization: auth } } })
+  const { data, error } = await supa.auth.getUser()
+  if (error || !data?.user) return null
+  const { data: isAdmin } = await supa.rpc("has_role", { _user_id: data.user.id, _role: "admin" })
+  if (!isAdmin) return null
+  return data.user
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
+  const user = await requireAdmin(req)
+  if (!user) return json({ error: "Unauthorized — admin only" }, 401)
 
   const body = await req.json().catch(() => ({}))
   const minPages = Math.max(GITHUB_SYNC_MIN_PAGES, Number(body?.minPages ?? GITHUB_SYNC_MIN_PAGES))

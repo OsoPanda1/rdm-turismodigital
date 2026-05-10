@@ -6,10 +6,24 @@ async function sha256(input: string) {
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("")
 }
 
+async function requireUser(req: Request) {
+  const auth = req.headers.get("Authorization") ?? ""
+  if (!auth.startsWith("Bearer ")) return null
+  const supa = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, { global: { headers: { Authorization: auth } } })
+  const { data, error } = await supa.auth.getUser()
+  if (error || !data?.user) return null
+  return data.user
+}
+
+const ALLOWED_ACTIONS = new Set(["sync_repos","publish_business","execute_protocol","ingest_telemetry","register_place","federation_state","dashboard_summary","unknown"])
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
+  const user = await requireUser(req)
+  if (!user) return json({ error: "Unauthorized" }, 401)
   const body = await req.json().catch(() => ({}))
   const action = String(body.action ?? "unknown")
+  if (!ALLOWED_ACTIONS.has(action)) return json({ error: "invalid action" }, 400)
   const text = JSON.stringify(body).toLowerCase()
   const blocked = /(rat|malware|scrap(e|ing)|telegram userbot|reverse shell|vigilancia masiva)/.test(text)
   const decision = blocked ? "reject" : /pago|comercio|publicar|sync/.test(text) ? "alert" : "accept"
