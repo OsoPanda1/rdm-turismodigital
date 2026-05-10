@@ -224,6 +224,13 @@ export type Database = {
             referencedRelation: "forum_posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "public_forum_posts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       forum_posts: {
@@ -354,7 +361,120 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_forum_comments: {
+        Row: {
+          author_name: string | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          likes: number | null
+          post_id: string | null
+        }
+        Insert: {
+          author_name?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          likes?: number | null
+          post_id?: string | null
+        }
+        Update: {
+          author_name?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          likes?: number | null
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "public_forum_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_forum_posts: {
+        Row: {
+          author_avatar: string | null
+          author_name: string | null
+          category: string | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          image_url: string | null
+          likes: number | null
+          place_name: string | null
+          title: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          author_avatar?: string | null
+          author_name?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          likes?: number | null
+          place_name?: string | null
+          title?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          author_avatar?: string | null
+          author_name?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          image_url?: string | null
+          likes?: number | null
+          place_name?: string | null
+          title?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          role: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          role?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
