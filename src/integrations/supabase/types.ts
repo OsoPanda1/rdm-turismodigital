@@ -341,6 +341,39 @@ export type Database = {
         }
         Relationships: []
       }
+      tamvcrums_logs: {
+        Row: {
+          created_at: string
+          ecg_rhythm: number
+          emotional_state: string
+          federation_id: string | null
+          id: string
+          impact_score: number
+          payload: Json
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          ecg_rhythm?: number
+          emotional_state?: string
+          federation_id?: string | null
+          id?: string
+          impact_score?: number
+          payload?: Json
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          ecg_rhythm?: number
+          emotional_state?: string
+          federation_id?: string | null
+          id?: string
+          impact_score?: number
+          payload?: Json
+          source?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
