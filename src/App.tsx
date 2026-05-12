@@ -6,6 +6,8 @@ import DashboardPage from "@/pages/Dashboard"
 import AuthPage from "@/pages/Auth"
 import ComercioRegistro from "@/pages/ComercioRegistro"
 import TurismoPage from "@/pages/Turismo"
+import TerritorioPage from "@/pages/Territorio"
+import IdentidadPage from "@/pages/Identidad"
 
 export default function App() {
   return (
@@ -21,7 +23,8 @@ export default function App() {
       <Route path="/auth/sign-up" element={<AuthPage mode="signup" />} />
       <Route path="/auth/sign-up-success" element={<SimplePage title="Registro confirmado" eyebrow="ID-NVIDA" body="Tu cuenta fue creada. Revisa tu correo si Supabase requiere verificación." />} />
       <Route path="/auth/error" element={<SimplePage title="Error de autenticación" eyebrow="ID-NVIDA" body="No fue posible completar el flujo de acceso." />} />
-      <Route path="/territorio" element={<SimplePage title="Territorio vivo" eyebrow="I · GEOGRAFÍA" body="Mapa operativo de Real del Monte con POIs validados en coordenadas 20.143°N, -98.671°W ±0.05°." />} />
+      <Route path="/territorio" element={<TerritorioPage />} />
+      <Route path="/identidad" element={<IdentidadPage />} />
       <Route path="/map" element={<Navigate to="/territorio" replace />} />
       <Route path="/mercado" element={<SimplePage title="Mercado soberano" eyebrow="ECONOMÍA" body="Directorio y visibilidad condicionada a comercios activos del Nodo Cero." />} />
       <Route path="/mercado/recibo" element={<SimplePage title="Recibo federado" eyebrow="PAGOS" body="Confirmación de aportación y ledger MSR del Mercado Soberano." />} />
