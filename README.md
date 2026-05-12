@@ -1,148 +1,164 @@
-# TAMV / RDM Digital MD‑X5
+# RDM Digital / TAMV Online
 
-Plataforma civilizatoria digital para Real del Monte: identidad, turismo inteligente, geolocalización operativa, protocolos auditables, economía creativa y capa de IA contextual.
+## Resumen ejecutivo
+RDM Digital es una plataforma territorial digital basada en React + Vite + Supabase, orientada a operar identidad digital, cartografía territorial, turismo inteligente, telemetría, repositorio evolutivo GitHub, protocolos TAMV y módulos de economía/operación federada en un mismo sistema.
 
-## 1) Qué es y qué no es
-
-**Qué es**
-- Un sistema territorial unificado con capas de identidad, datos, protocolos, visualización y servicios para ciudadanía, comercio e instituciones.
-- Una base para social + turismo + geointeligencia + economía + gobernanza trazable.
-
-**Qué no es**
-- No es solo landing estática.
-- No es un stack “demo-only” sin trazabilidad.
-- No es un sistema de vigilancia encubierta ni gamificación opaca de poder.
-
-**Qué no es**
-- No es solo landing estática.
-- No es un stack “demo-only” sin trazabilidad.
-- No es un sistema de vigilancia encubierta ni gamificación opaca de poder.
-
-## 2) Diagnóstico técnico profundo del repositorio (actualizado)
-
-### Fortalezas
-- App Next.js moderna con App Router y segmentación por rutas funcionales.
-- Integración Supabase Auth + Prisma + Stripe + endpoints de IA.
-- Nuevas rutas de geolocalización y Digital Twin ya operativas (`places`, `telemetry`, `realito`).
-- Paginación real en `/repositorio` con lectura profunda de GitHub en mínimo 3 páginas consecutivas y fusión por federación TAMV/RDM.
-
-### Debilidades detectadas
-- **Inconsistencia de fuentes de verdad** entre Supabase Auth y Prisma User (identidad híbrida no completamente orquestada).
-- **Type safety rota en build TS** por versión Stripe (`lib/payments.ts`).
-- **Observabilidad parcial**: faltan métricas unificadas por dominio (auth/turismo/telemetry/protocols).
-- **Riesgo de deuda UX**: aún conviven pantallas avanzadas con páginas “en construcción”.
-
-### Cuellos de botella
-- Dependencia de APIs externas sin capa fuerte de resiliencia/circuit breaker.
-- Falta de un bus/event layer explícito entre EOCT/MSR/BookPI y servicios de dominio.
-- Ausencia de estrategia de “live updates” persistentes (SSE existe, pero aún no hay pipeline continuo multi-consumer).
-
-### Sesgos/inconsistencias funcionales corregidas recientemente
-- Redirecciones de autenticación frágiles (signup/login/callback) reforzadas.
-- Mensajería opaca en login corregida para casos de correo no confirmado.
-- Paginación estructurada para absorción incremental de repos GitHub, con análisis de lenguajes, forks, archivados, federaciones y último push.
+No es solo una landing: es un stack operativo con frontend productivo, stores de estado de dominio, funciones Edge para procesos críticos y componentes de análisis visual (dashboard, anillo federado, ECG operativo).
 
 ---
 
-## 3) Arquitectura federada TAMV (L0–L7)
-
-- **L0 Doctrina/Ética**: reglas explícitas anti-daño, anti-opacidad y trazabilidad.
-- **L1 Memoria/Registro**: eventos MSR + narrativa BookPI.
-- **L2 Protocolos controlados**: EOCT + Protocol Engine + lifecycle de decisión.
-- **L3 Guardianía**: monitoreo, alertas, umbrales y observabilidad operacional.
-- **L4 XR/Visual**: representación territorial y DreamSpaces.
-- **L5 Servicios de dominio**: identidad, turismo, telemetría, economía, social.
-- **L6 Shell UX**: flujos web de uso ciudadano/comercial/institucional.
-- **L7 Quant-inspired**: desacople de definición de decisión vs. resolución futura híbrida.
+## 1) ¿Qué es el proyecto?
+RDM Digital / TAMV Online es una arquitectura de software cívico-territorial para:
+- **Identidad y acceso** (ID-NVIDA + autenticación Supabase).
+- **Turismo inteligente** (contenido, exploración y asistencia IA contextual).
+- **Territorio digital** (componentes de mapa y visualización de nodos).
+- **Repositorio evolutivo** (ingesta y clasificación de repos GitHub por federaciones).
+- **Gobernanza operativa** (protocolos EOCT/MSR/BookPI, dashboard y consola).
 
 ---
 
-## 4) Endpoints clave (actual)
-
-### Identidad
-- `POST /api/auth/register`
-- `GET /auth/callback`
-- `/auth/login`, `/auth/sign-up`
-
-### Protocolos y narrativa
-- `POST /api/protocols/execute`
-
-### Geolocalización / Digital Twin
-- `POST /api/places/register`
-- `GET /api/places/:id`
-- `POST /api/telemetry/ingest`
-- `GET /api/telemetry/live` (SSE)
-
-### IA
-- `POST /api/realito/isabella/chat`
-- `POST /api/ai/ask`
-
-### Absorción GitHub (OsoPanda1)
-- `POST /functions/v1/github-sync`
-- Payload opcional: `{ "minPages": 3, "maxPages": 10 }`
-- Respuesta: `{ synced, analyzed, pages_scanned, min_pages_requested, repositories, analysis }`
-- La pantalla `/repositorio` pagina 12 nodos núcleo por vista y ejecuta clasificación/fusión por federación.
+## 2) ¿Para qué sirve?
+Sirve como núcleo de operación digital para una estrategia “smart territory / twin city” en Real del Monte, permitiendo:
+1. Publicar servicios ciudadanos y comerciales en una UI única.
+2. Medir estado operativo de nodos, telemetría y señales de red.
+3. Integrar conocimiento vivo desde GitHub para el ecosistema TAMV/RDM.
+4. Preparar despliegue progresivo hacia un sistema federado multi-módulo.
 
 ---
 
-## 5) UX y estilo visual (estado)
+## 3) ¿Qué hace hoy (capacidades implementadas)?
 
-- Home rediseñada con enfoque visual operativo + acceso ID‑NVIDA + KPIs rápidos.
-- Turismo con tarjetas visuales, categorías y asistente IA.
-- Navegación principal ampliada a rutas estratégicas.
+### Frontend y navegación
+- Aplicación SPA React con ruteo por dominios: `home`, `dashboard`, `repositorio`, `territorio`, `turismo`, `identidad`, `auth`.  
+- Vistas de operación: dashboard modular (`ECG`, `anillo`, `consola`) y explorador de repositorios filtrable.
+
+### Estado y lógica
+- Stores por dominio para red, economía e Isabella (estado de nodos, balance, salud operativa).  
+- Capa de clasificación de repositorios por federación y tipología para análisis del ecosistema.
+
+### Backend serverless (Supabase Edge Functions)
+- Endpoints para: `github-sync`, `dashboard-summary`, `federation-state`, `telemetry-ingest`, `protocols-execute`, `places-register`, `stripe-checkout`, `stripe-webhook`, `billing-monthly`, `isabella-chat`, `kernel-isabella-chat`, `isabella-evaluate`, `kernel-isabella-evaluate`.
+
+### Datos y persistencia
+- Migraciones SQL versionadas en `supabase/migrations`.
+- Integración de cliente Supabase en frontend.
 
 ---
 
-## 6) Seguridad y cumplimiento (mínimo aplicable)
+## 4) ¿Cómo lo hace? (arquitectura técnica)
 
-- Saneamiento de `next` en auth callbacks/login.
-- Validaciones de payload en rutas críticas.
-- Recomendado inmediato:
-  1. Rate limiting por endpoint crítico.
-  2. Firma/verificación estricta de webhooks.
-  3. RLS end-to-end en tablas sensibles.
-  4. Rotación de secretos + auditoría periódica.
+### Stack principal
+- **Frontend:** React 18 + Vite + TypeScript + React Router.
+- **Data fetching/cache:** TanStack React Query.
+- **Estilo/UI:** Tailwind + Radix UI + componentes custom.
+- **Mapeo/geo:** Leaflet + React-Leaflet.
+- **Gráficas:** Recharts.
+- **Backend operacional:** Supabase Edge Functions (Deno).
+- **Pagos:** Stripe (checkout + webhook).
+
+### Patrón de ejecución
+1. UI consume datos de Supabase y GitHub API.
+2. React Query cachea y normaliza sincronizaciones.
+3. Stores de dominio mantienen señal operacional en tiempo real de vistas críticas.
+4. Edge Functions ejecutan procesos de integración, validación y orquestación.
 
 ---
 
-## 7) Instalación
+## 5) Misión, visión y objetivos
 
+### Misión
+Construir una infraestructura digital territorial auditable, útil y soberana para ciudadanía, comercio e instituciones, con enfoque en interoperabilidad, trazabilidad y operación continua.
+
+### Visión
+Ser referencia de plataforma civilizatoria digital hispanoamericana en modelos smart city / digital twin federados, integrando territorio, conocimiento, economía y gobernanza en una sola arquitectura viva.
+
+### Objetivos estratégicos
+- Consolidar el núcleo operativo RDM/TAMV en producción estable.
+- Unificar identidad, observabilidad y protocolos bajo estándares de confiabilidad medibles.
+- Acelerar despliegue por módulos sin perder coherencia arquitectónica.
+
+---
+
+## 6) Porcentaje real de avance hacia producción y despliegue
+
+## Estimación actual: **72%**
+
+### Justificación técnica de la estimación
+**Fortalezas ya implementadas (alto peso):**
+- Base frontend productiva funcional.
+- Integración Supabase/Edge Functions real.
+- Dashboard, repositorio y módulos operativos con datos vivos.
+- Pipeline de build estable.
+
+**Brechas para 100% producción (pendientes críticos):**
+- Hardening de seguridad integral (RLS exhaustivo, limitación de tasa sistemática, observabilidad transversal).
+- SLO/SLI formales y alertamiento operativo completo.
+- Cobertura de pruebas end-to-end y pruebas de carga.
+- Automatización madura de despliegue/rollback multi-entorno.
+
+> Nota: 72% es una estimación de madurez técnica del producto (no de “idea”), con enfoque en readiness operativo.
+
+---
+
+## 7) Biografía del CEO fundador (fuente interna del proyecto)
+Con base en los textos existentes dentro del repositorio, el proyecto atribuye su conceptualización filosófica y parte de su construcción a **Anubis Villaseñor**. Se describe como una iniciativa de alto alcance civilizatorio, con énfasis en blindaje jurídico-legal, integración tecnológica y visión sistémica de largo plazo.
+
+**Importante:** este README evita inventar datos biográficos no verificables (edad, historial laboral, estudios o cargos externos) que no estén explicitados en el propio proyecto.
+
+---
+
+## 8) Posicionamiento tecnológico
+RDM Digital se posiciona como una plataforma híbrida entre:
+- **Smart city OS** (servicios territoriales y observabilidad),
+- **Digital twin operativo** (visualización de nodos/telemetría),
+- **Knowledge-driven platform** (repositorio evolutivo y clasificación de ecosistema),
+- **Capa protocolaria/federada** (EOCT/MSR/BookPI como narrativa de gobernanza técnica).
+
+### Diferenciadores
+1. Unión de producto cívico, turismo y operación territorial en una sola base de código.
+2. Arquitectura preparada para crecimiento federado por dominios.
+3. Integración temprana de IA y telemetría en flujos prácticos (no solo demostrativos).
+
+---
+
+## 9) Estructura del repositorio (macro mapa)
+- `src/pages`: superficies de producto por dominio.
+- `src/components`: UI y módulos operativos (RDM/TAMV).
+- `src/stores`: estado de red, economía, Isabella.
+- `src/lib`: utilidades de negocio (GitHub, pagos, TAMV engines, paginación).
+- `supabase/functions`: backend serverless por caso de uso.
+- `supabase/migrations`: evolución de esquema de datos.
+- `core/`: motores de orquestación, evento y espacialidad.
+- `infra/`: seguridad, tracing y artefactos de operación.
+
+---
+
+## 10) Instalación y ejecución
 ```bash
 pnpm install
-pnpm prisma:generate
-pnpm prisma:push
 pnpm dev
 ```
 
-Build:
+Build de producción:
 ```bash
 pnpm build
 ```
 
-Type-check:
+Preview local:
 ```bash
-npx tsc --noEmit
+pnpm preview
 ```
 
 ---
 
-## 8) Estado de calidad conocido
-
-- Si `npx tsc --noEmit` falla por Stripe API version typing en `lib/payments.ts`, actualizar `apiVersion` al valor esperado por el SDK instalado.
-- Si `next build` falla por descarga de Google Fonts en entornos cerrados, usar fallback local de fuentes o pipeline con egress habilitado.
-
----
-
-## 9) Roadmap prioritario
-
-1. Unificar identidad Supabase ↔ Prisma (ID‑NVIDA service).
-2. Consolidar Social Layer (feed real + comments + channels + DM).
-3. Live map continuo (telemetry stream + heat/radar layer).
-4. Motor de membresías/economía con ledger interno auditable.
-5. Panel de guardianía (latencia, errores, riesgo EOCT, salud de servicios).
+## 11) Ruta recomendada para llegar a 100% producción
+1. Formalizar seguridad de datos end-to-end (RLS, secretos, auditoría y threat-model).
+2. Instrumentar observabilidad completa (logs estructurados, métricas y tracing unificados).
+3. Implementar pruebas e2e/regresión + carga con umbrales de calidad bloqueantes.
+4. Definir pipeline CI/CD con estrategias canary y rollback validado.
+5. Cerrar brechas UX de páginas placeholder y estandarizar design system operativo.
 
 ---
 
-## 10) Posicionamiento tecnológico
-
-TAMV se posiciona como una **infraestructura territorial de nueva generación** (social + XR + economía + protocolos auditables), diferenciada por su enfoque civilizatorio, trazabilidad ética y arquitectura modular para escalar a operaciones institucionales.
+## 12) Declaración final
+RDM Digital no se presenta como un prototipo estático: es una base funcional de sistema territorial digital con capacidad real de evolucionar a operación institucional, siempre que complete su fase de hardening y gobierno de producción.
