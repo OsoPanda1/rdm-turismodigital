@@ -131,10 +131,8 @@ export default function TerritorioPage() {
               <LayersControl.BaseLayer name="Calles">
                 <TileLayer attribution="© OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               </LayersControl.BaseLayer>
-              <LayersControl.Overlay checked name="Heatmap de uso">
-                <HeatGroup pois={filtered} />
-              </LayersControl.Overlay>
             </LayersControl>
+            <HeatLayer points={filtered} />
 
             {filtered.map((p) => (
               <CircleMarker
@@ -156,9 +154,4 @@ export default function TerritorioPage() {
       </div>
     </div>
   )
-}
-
-// LayersControl.Overlay needs a leaflet layer child; wrap HeatLayer through a no-op group component.
-function HeatGroup({ pois }: { pois: POI[] }) {
-  return <HeatLayer points={pois} />
 }
