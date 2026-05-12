@@ -38,10 +38,41 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_signatures: {
+        Row: {
+          id: string
+          metadata: Json
+          resource_id: string
+          resource_type: string
+          sha256: string
+          signed_at: string
+          signed_by: string | null
+        }
+        Insert: {
+          id?: string
+          metadata?: Json
+          resource_id: string
+          resource_type: string
+          sha256: string
+          signed_at?: string
+          signed_by?: string | null
+        }
+        Update: {
+          id?: string
+          metadata?: Json
+          resource_id?: string
+          resource_type?: string
+          sha256?: string
+          signed_at?: string
+          signed_by?: string | null
+        }
+        Relationships: []
+      }
       businesses: {
         Row: {
           address: string | null
           category: string
+          commerce_type: string
           created_at: string
           description: string
           email: string | null
@@ -56,8 +87,11 @@ export type Database = {
           is_verified: boolean
           latitude: number | null
           longitude: number | null
+          monthly_fee_cents: number
           name: string
+          next_payment_due: string | null
           owner_id: string | null
+          payment_status: string
           phone: string | null
           price_range: string | null
           rating: number | null
@@ -74,6 +108,7 @@ export type Database = {
         Insert: {
           address?: string | null
           category?: string
+          commerce_type?: string
           created_at?: string
           description?: string
           email?: string | null
@@ -88,8 +123,11 @@ export type Database = {
           is_verified?: boolean
           latitude?: number | null
           longitude?: number | null
+          monthly_fee_cents?: number
           name: string
+          next_payment_due?: string | null
           owner_id?: string | null
+          payment_status?: string
           phone?: string | null
           price_range?: string | null
           rating?: number | null
@@ -106,6 +144,7 @@ export type Database = {
         Update: {
           address?: string | null
           category?: string
+          commerce_type?: string
           created_at?: string
           description?: string
           email?: string | null
@@ -120,8 +159,11 @@ export type Database = {
           is_verified?: boolean
           latitude?: number | null
           longitude?: number | null
+          monthly_fee_cents?: number
           name?: string
+          next_payment_due?: string | null
           owner_id?: string | null
+          payment_status?: string
           phone?: string | null
           price_range?: string | null
           rating?: number | null
@@ -185,6 +227,45 @@ export type Database = {
           start_date?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      federations: {
+        Row: {
+          active: boolean
+          color_hex: string | null
+          created_at: string
+          description: string | null
+          domain: string | null
+          icon: string | null
+          id: string
+          modules: Json
+          motto: string | null
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          color_hex?: string | null
+          created_at?: string
+          description?: string | null
+          domain?: string | null
+          icon?: string | null
+          id: string
+          modules?: Json
+          motto?: string | null
+          name: string
+        }
+        Update: {
+          active?: boolean
+          color_hex?: string | null
+          created_at?: string
+          description?: string | null
+          domain?: string | null
+          icon?: string | null
+          id?: string
+          modules?: Json
+          motto?: string | null
+          name?: string
         }
         Relationships: []
       }
@@ -284,6 +365,56 @@ export type Database = {
         }
         Relationships: []
       }
+      pois: {
+        Row: {
+          altitude_m: number | null
+          category: string
+          created_at: string
+          description: string | null
+          federation_id: string | null
+          id: string
+          lat: number
+          lng: number
+          municipality: string
+          name: string
+          significance: string | null
+        }
+        Insert: {
+          altitude_m?: number | null
+          category: string
+          created_at?: string
+          description?: string | null
+          federation_id?: string | null
+          id?: string
+          lat: number
+          lng: number
+          municipality?: string
+          name: string
+          significance?: string | null
+        }
+        Update: {
+          altitude_m?: number | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          federation_id?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          municipality?: string
+          name?: string
+          significance?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pois_federation_id_fkey"
+            columns: ["federation_id"]
+            isOneToOne: false
+            referencedRelation: "federations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -316,6 +447,124 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      repositories: {
+        Row: {
+          classification: string | null
+          default_branch: string | null
+          description: string | null
+          federation_id: string | null
+          forks: number
+          full_name: string
+          github_id: number | null
+          homepage: string | null
+          id: string
+          is_core: boolean
+          language: string | null
+          name: string
+          pushed_at: string | null
+          size_kb: number
+          stars: number
+          topics: Json
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          classification?: string | null
+          default_branch?: string | null
+          description?: string | null
+          federation_id?: string | null
+          forks?: number
+          full_name: string
+          github_id?: number | null
+          homepage?: string | null
+          id: string
+          is_core?: boolean
+          language?: string | null
+          name: string
+          pushed_at?: string | null
+          size_kb?: number
+          stars?: number
+          topics?: Json
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          classification?: string | null
+          default_branch?: string | null
+          description?: string | null
+          federation_id?: string | null
+          forks?: number
+          full_name?: string
+          github_id?: number | null
+          homepage?: string | null
+          id?: string
+          is_core?: boolean
+          language?: string | null
+          name?: string
+          pushed_at?: string | null
+          size_kb?: number
+          stars?: number
+          topics?: Json
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repositories_federation_id_fkey"
+            columns: ["federation_id"]
+            isOneToOne: false
+            referencedRelation: "federations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routes: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          description: string | null
+          distance_km: number | null
+          duration_min: number | null
+          federation_id: string | null
+          geometry: Json | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          distance_km?: number | null
+          duration_min?: number | null
+          federation_id?: string | null
+          geometry?: Json | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          distance_km?: number | null
+          duration_min?: number | null
+          federation_id?: string | null
+          geometry?: Json | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routes_federation_id_fkey"
+            columns: ["federation_id"]
+            isOneToOne: false
+            referencedRelation: "federations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_logs: {
         Row: {
